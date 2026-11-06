@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Xtream Codes panels are frequently served over plain HTTP on a LAN IP, so
+    cleartext must stay allowed for user-entered hosts. The login screen shows an
+    explicit warning whenever the user types an http:// URL.
+    Tighten this file (cleartextTrafficPermitted="false" + domain-config) once all
+    target panels are known to serve HTTPS.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

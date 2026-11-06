@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Heedar TV</string>
+    <string name="login_tagline">IPTV player for live channels, movies and series</string>
+    <string name="hint_server_url">Server URL (e.g. http://server:8080)</string>
+    <string name="hint_username">Username</string>
+    <string name="hint_password">Password</string>
+    <string name="action_login">Sign in</string>
+    <string name="login_in_progress">Checking your account…</string>
+    <string name="error_required_fields">Please fill in all fields</string>
+    <string name="error_invalid_url">The server URL is not valid</string>
+    <string name="error_auth">Wrong username or password</string>
+    <string name="error_network">Cannot reach the server, check your network and URL</string>
+    <string name="error_unknown">Something went wrong</string>
+    <string name="warning_cleartext">Warning: this connection is not encrypted (http), credentials are sent in clear text</string>
+    <string name="channels_title">Live channels</string>
+    <string name="channels_empty">No channels on this account</string>
+    <string name="channels_loading">Loading channels…</string>
+    <string name="action_retry">Retry</string>
+    <string name="player_title_fallback">Live stream</string>
+    <string name="player_error">This stream could not be played</string>
+    <string name="channel_logo_description">Channel logo</string>
+</resources>

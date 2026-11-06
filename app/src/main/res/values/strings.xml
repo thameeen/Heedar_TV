@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Heedar TV</string>
+    <string name="login_tagline">مشغل IPTV للقنوات الحية والأفلام والمسلسلات</string>
+    <string name="hint_server_url">رابط السيرفر (مثال: http://server:8080)</string>
+    <string name="hint_username">اسم المستخدم</string>
+    <string name="hint_password">كلمة المرور</string>
+    <string name="action_login">تسجيل الدخول</string>
+    <string name="login_in_progress">جارٍ التحقق من الحساب…</string>
+    <string name="error_required_fields">الرجاء تعبئة جميع الحقول</string>
+    <string name="error_invalid_url">رابط السيرفر غير صالح</string>
+    <string name="error_auth">اسم المستخدم أو كلمة المرور غير صحيحة</string>
+    <string name="error_network">تعذر الاتصال بالسيرفر، تحقق من الشبكة والرابط</string>
+    <string name="error_unknown">حدث خطأ غير متوقع</string>
+    <string name="warning_cleartext">تنبيه: الاتصال غير مشفّر (http)، تُرسل بيانات الدخول بدون تشفير</string>
+    <string name="channels_title">القنوات الحية</string>
+    <string name="channels_empty">لا توجد قنوات في هذا الحساب</string>
+    <string name="channels_loading">جارٍ تحميل القنوات…</string>
+    <string name="action_retry">إعادة المحاولة</string>
+    <string name="player_title_fallback">بث مباشر</string>
+    <string name="player_error">تعذر تشغيل هذا البث</string>
+    <string name="channel_logo_description">شعار القناة</string>
+</resources>
