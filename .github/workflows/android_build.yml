@@ -44,13 +44,34 @@ jobs:
       - name: Assemble debug APK
         run: gradle assembleDebug --no-daemon --stacktrace
 
-      - name: Upload reports and APK
+      # Produces app-release-unsigned.apk. There is no signing config in
+      # app/build.gradle.kts and no keystore in the repository, so this artifact
+      # is unsigned on purpose: signing requires the owner's key material.
+      - name: Assemble release APK (unsigned)
+        run: gradle assembleRelease --no-daemon --stacktrace
+
+      # AppJet cannot run Gradle, so no gradle.lockfile can be produced locally
+      # and the dependency scanner reports "incomplete". Dumping the resolved
+      # graph here gives an authoritative package list to scan.
+      - name: Dump resolved dependencies
+        if: always()
+        continue-on-error: true
+        run: |
+          mkdir -p app/build/reports/dependencies
+          gradle :app:dependencies --configuration releaseRuntimeClasspath \
+            --no-daemon > app/build/reports/dependencies/releaseRuntimeClasspath.txt 2>&1 || true
+          gradle :app:dependencies --configuration debugRuntimeClasspath \
+            --no-daemon > app/build/reports/dependencies/debugRuntimeClasspath.txt 2>&1 || true
+
+      - name: Upload reports and APKs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: android-build-output
           path: |
             app/build/reports/tests/**
+            app/build/reports/dependencies/**
             app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
           if-no-files-found: warn
           retention-days: 7
