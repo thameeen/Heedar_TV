@@ -205,6 +205,14 @@ class Resolver:
             if version:
                 self.managed.setdefault((group, artifact), version)
 
+    def collect_managed_full(self, pom: Pom, depth: int = 0) -> None:
+        """Collect managed versions from this POM and its parent chain."""
+        self.collect_managed(pom, self.props_for(pom), depth)
+        if pom.parent and depth < 3:
+            parent = self.load(*pom.parent)
+            if parent is not None:
+                self.collect_managed_full(parent, depth + 1)
+
     def dependencies(self, pom: Pom, props: dict[str, str]) -> list[tuple[str, str, str]]:
         result = []
         for dep in pom._root.findall(f"{POM_NS}dependencies/{POM_NS}dependency"):
@@ -225,7 +233,13 @@ class Resolver:
             if version is None:
                 self.unresolved[f"{group}:{artifact}:?"] = "no version in POM or BOM"
                 continue
-            result.append((group, artifact, version))
+            concrete = normalize_version(version)
+            if concrete is None:
+                self.unresolved[f"{group}:{artifact}:{version}"] = (
+                    "version range, not a concrete version"
+                )
+                continue
+            result.append((group, artifact, concrete))
         return result
 
 
