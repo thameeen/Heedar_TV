@@ -220,6 +220,92 @@ class XtreamRepositoryImpl(
     }
 }
 
+private fun CategoryDto.toCategory(): Category? {
+    val id = categoryId?.trim().orEmpty()
+    val label = categoryName?.trim().orEmpty()
+    if (id.isEmpty() || label.isEmpty()) return null
+    return Category(id = id, name = label)
+}
+
+/**
+ * Xtream returns episodes as a map keyed by season number, and the `seasons`
+ * array is optional. Both are merged here so the UI always receives ordered
+ * seasons with ordered episodes, and unknown seasons are never invented.
+ */
+private fun SeriesInfoDto.toSeriesDetail(seriesId: Int): SeriesDetail {
+    val meta = info
+    val seasonLabels = seasons.orEmpty()
+        .mapNotNull { season -> season.seasonNumber?.let { number -> number to season.name?.trim() } }
+        .toMap()
+
+    val seasonBlocks = episodes.orEmpty().entries.mapNotNull { (key, list) ->
+        val seasonNumber = key.trim().toIntOrNull() ?: return@mapNotNull null
+        val mappedEpisodes = list.mapNotNull { it.toEpisode(seasonNumber) }.sortedBy { it.number }
+        if (mappedEpisodes.isEmpty()) return@mapNotNull null
+        Season(
+            number = seasonNumber,
+            title = seasonLabels[seasonNumber]?.takeIf { it.isNotEmpty() },
+            episodes = mappedEpisodes
+        )
+    }.sortedBy { it.number }
+
+    return SeriesDetail(
+        id = seriesId,
+        name = meta?.name?.trim().orEmpty(),
+        coverUrl = meta?.cover?.trim()?.takeIf { it.isNotEmpty() },
+        plot = meta?.plot?.trim()?.takeIf { it.isNotEmpty() },
+        cast = meta?.cast?.trim()?.takeIf { it.isNotEmpty() },
+        director = meta?.director?.trim()?.takeIf { it.isNotEmpty() },
+        genre = meta?.genre?.trim()?.takeIf { it.isNotEmpty() },
+        releaseDate = meta?.releaseDate?.trim()?.takeIf { it.isNotEmpty() },
+        rating = meta?.rating?.trim()?.takeIf { it.isNotEmpty() },
+        seasons = seasonBlocks
+    )
+}
+
+private fun EpisodeDto.toEpisode(fallbackSeason: Int): Episode? {
+    // Episode ids arrive as strings on most panels and are the stream id used to
+    // build /series/ URLs, so an unparsable id means the episode is unplayable.
+    val episodeId = id?.trim()?.toIntOrNull() ?: return null
+    return Episode(
+        id = episodeId,
+        season = season ?: fallbackSeason,
+        number = episodeNum ?: 0,
+        title = title?.trim().orEmpty(),
+        imageUrl = info?.movieImage?.trim()?.takeIf { it.isNotEmpty() },
+        containerExtension = containerExtension?.trim()?.takeIf { it.isNotEmpty() },
+        plot = info?.plot?.trim()?.takeIf { it.isNotEmpty() }
+    )
+}
+
+private fun VodInfoDto.toMovieDetail(vodId: Int): MovieDetail {
+    val meta = info
+    val data = movieData
+    return MovieDetail(
+        id = data?.streamId ?: vodId,
+        name = (meta?.name ?: data?.name)?.trim().orEmpty(),
+        posterUrl = meta?.movieImage?.trim()?.takeIf { it.isNotEmpty() },
+        plot = meta?.plot?.trim()?.takeIf { it.isNotEmpty() },
+        cast = meta?.cast?.trim()?.takeIf { it.isNotEmpty() },
+        director = meta?.director?.trim()?.takeIf { it.isNotEmpty() },
+        genre = meta?.genre?.trim()?.takeIf { it.isNotEmpty() },
+        duration = meta?.duration?.trim()?.takeIf { it.isNotEmpty() },
+        rating = meta?.rating?.trim()?.takeIf { it.isNotEmpty() },
+        releaseDate = (meta?.releaseDate ?: meta?.releaseDateAlt)?.trim()?.takeIf { it.isNotEmpty() },
+        containerExtension = data?.containerExtension?.trim()?.takeIf { it.isNotEmpty() }
+    )
+}
+
+private fun UserInfoDto.toProfile(): AccountProfile = AccountProfile(
+    username = username?.trim()?.takeIf { it.isNotEmpty() },
+    status = status?.trim()?.takeIf { it.isNotEmpty() },
+    // exp_date is a unix timestamp in seconds; non-positive means "never expires".
+    expiresAtMillis = expDate?.takeIf { it > 0L }?.times(1000L),
+    maxConnections = maxConnections?.trim()?.toIntOrNull(),
+    activeConnections = activeConnections?.trim()?.toIntOrNull(),
+    isTrial = isTrial?.trim() == "1"
+)
+
 private fun LiveStreamDto.toChannel(): Channel? {
     val id = streamId ?: return null
     val channelName = name?.trim().orEmpty()
