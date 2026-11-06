@@ -20,4 +20,90 @@
     <string name="player_title_fallback">Live stream</string>
     <string name="player_error">This stream could not be played</string>
     <string name="channel_logo_description">Channel logo</string>
+
+    <!-- Navigation -->
+    <string name="nav_live">Live</string>
+    <string name="nav_movies">Movies</string>
+    <string name="nav_series">Series</string>
+    <string name="nav_news">News</string>
+    <string name="nav_sports">Sports</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_profile">Account</string>
+
+    <!-- Sections -->
+    <string name="movies_title">Movies</string>
+    <string name="movies_empty">No movies on this account</string>
+    <string name="movies_loading">Loading movies…</string>
+    <string name="series_title">Series</string>
+    <string name="series_empty">No series on this account</string>
+    <string name="series_loading">Loading series…</string>
+    <string name="news_title">News</string>
+    <string name="news_empty">No news channels on this account</string>
+    <string name="news_loading">Loading news channels…</string>
+    <string name="sports_title">Sports</string>
+    <string name="sports_empty">No sports channels on this account</string>
+    <string name="sports_loading">Loading sports channels…</string>
+
+    <!-- Favorites -->
+    <string name="favorites_title">Favorites</string>
+    <string name="favorites_empty">Nothing added to favorites yet</string>
+    <string name="action_add_favorite">Add to favorites</string>
+    <string name="action_remove_favorite">Remove from favorites</string>
+    <string name="favorites_added">Added to favorites</string>
+    <string name="favorites_removed">Removed from favorites</string>
+
+    <!-- Search -->
+    <string name="search_hint">Search channels, movies or series</string>
+    <string name="search_empty">No matching results</string>
+    <string name="search_prompt">Type at least two characters to search</string>
+    <string name="search_results_count">%1$d results</string>
+
+    <!-- Categories -->
+    <string name="category_all">All</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_language">Language</string>
+    <string name="language_arabic">العربية</string>
+    <string name="language_english">English</string>
+    <string name="settings_account">Account</string>
+    <string name="settings_server">Server</string>
+    <string name="settings_logout">Sign out</string>
+    <string name="settings_about">About</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_playback_note">Playback depends on the provider registered to this account</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Account</string>
+    <string name="profile_username">Username</string>
+    <string name="profile_status">Subscription status</string>
+    <string name="profile_expiry">Expiry date</string>
+    <string name="profile_plan">Plan</string>
+    <string name="profile_connections">Connections</string>
+    <string name="profile_unknown">Not available</string>
+
+    <!-- Series details -->
+    <string name="episodes_title">Episodes</string>
+    <string name="season_title">Season %1$d</string>
+    <string name="episode_title_fallback">Episode %1$d</string>
+
+    <!-- Details -->
+    <string name="details_plot">Story</string>
+    <string name="details_cast">Cast</string>
+    <string name="details_director">Director</string>
+    <string name="details_genre">Genre</string>
+    <string name="details_rating">Rating</string>
+    <string name="details_duration">Duration</string>
+    <string name="details_release">Release year</string>
+
+    <!-- Common actions -->
+    <string name="action_play">Play</string>
+    <string name="action_close">Close</string>
+    <string name="loading_generic">Loading…</string>
+    <string name="content_description_poster">Poster</string>
+    <string name="content_description_back">Back</string>
+    <string name="live_badge_label">LIVE</string>
+    <string name="tv_dpad_hint">Use the direction buttons to move and the select button to play</string>
 </resources>
