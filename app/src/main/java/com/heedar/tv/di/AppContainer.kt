@@ -2,7 +2,9 @@ package com.heedar.tv.di
 
 import android.content.Context
 import com.heedar.tv.data.EncryptedPlaylistStore
+import com.heedar.tv.data.FavoritesStore
 import com.heedar.tv.data.PlaylistStore
+import com.heedar.tv.data.SharedPreferencesFavoritesStore
 import com.heedar.tv.data.XtreamRepository
 import com.heedar.tv.data.XtreamRepositoryImpl
 import com.heedar.tv.data.remote.XtreamClientFactory
@@ -22,6 +24,8 @@ class AppContainer(
     private val appContext: Context = context.applicationContext
 
     val playlistStore: PlaylistStore = EncryptedPlaylistStore(appContext)
+
+    val favoritesStore: FavoritesStore = SharedPreferencesFavoritesStore(appContext)
 
     fun createRepository(config: ServerConfig): XtreamRepository =
         XtreamRepositoryImpl(
