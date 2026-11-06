@@ -120,7 +120,10 @@ def collect_resources() -> dict[str, set[str]]:
     return resources
 
 
-REFERENCE = re.compile(r"^@(?:\+)?(string|color|dimen|style|drawable|layout|xml|mipmap|id)/([A-Za-z0-9_.]+)$")
+REFERENCE = re.compile(
+    r"^@(?:\+)?(string|color|dimen|style|drawable|layout|xml|mipmap|id|array|plurals|"
+    r"font|menu|raw|anim|bool|integer)/([A-Za-z0-9_.]+)$"
+)
 
 
 def check_xml_files(resources: dict[str, set[str]]) -> None:
@@ -154,16 +157,25 @@ def check_xml_files(resources: dict[str, set[str]]) -> None:
 
 def check_kotlin(resources: dict[str, set[str]]) -> None:
     binding_ids: dict[str, set[str]] = {}
-    for layout in (RES / "layout").glob("*.xml"):
+    # Merge ids across configuration variants (layout/ and layout-sw600dp/ share
+    # one generated binding class name). Checking only res/layout meant a property
+    # present solely in a TV variant was reported missing, and a typo inside a
+    # sw600dp layout was never inspected at all.
+    for layout in RES.rglob("*.xml"):
+        if not is_layout_folder(layout.parent.name):
+            continue
         tree = ET.parse(layout)
         ids = set()
         for element in tree.iter():
             raw_id = element.get(f"{ANDROID_NS}id")
             if raw_id and raw_id.startswith("@+id/"):
                 ids.add(raw_id[len("@+id/"):])
-        binding_ids[kebab_to_camel(layout.stem) + "Binding"] = ids
+        binding_ids.setdefault(kebab_to_camel(layout.stem) + "Binding", set()).update(ids)
 
-    r_reference = re.compile(r"\bR\.(string|color|dimen|style|drawable|layout|xml|mipmap|id)\.([A-Za-z0-9_]+)")
+    r_reference = re.compile(
+        r"\bR\.(string|color|dimen|style|drawable|layout|xml|mipmap|id|array|plurals|"
+        r"font|menu|raw|anim|bool|integer)\.([A-Za-z0-9_]+)"
+    )
     binding_usage = re.compile(r"\b(?:binding|itemBinding|viewBinding)\.([A-Za-z0-9_]+)")
     binding_class = re.compile(r"\b([A-Za-z0-9]+Binding)\b")
 
