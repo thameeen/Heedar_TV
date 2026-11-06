@@ -67,7 +67,7 @@ class LoginActivity : AppCompatActivity() {
 
         if (state.navigateToChannels) {
             viewModel.onNavigationHandled()
-            startActivity(Intent(this, ChannelsActivity::class.java))
+            startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
     }

@@ -96,6 +96,14 @@ class CatalogViewModel(
         }
     }
 
+    /** Re-reads favourites so markers stay correct after another screen changes them. */
+    fun refreshFavorites() {
+        val keys = favoriteKeys()
+        if (keys != _state.value.favoriteKeys) {
+            _state.value = _state.value.copy(favoriteKeys = keys)
+        }
+    }
+
     fun selectCategory(categoryId: String?) {
         _state.value = _state.value.copy(
             selectedCategoryId = categoryId,
