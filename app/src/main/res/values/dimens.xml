@@ -41,4 +41,8 @@
     <dimen name="text_caption">12sp</dimen>
 
     <dimen name="empty_icon_size">72dp</dimen>
+
+    <!-- Grid spacing must exist in the default configuration: GridSpan reads it on
+         phones too, and a sw600dp-only definition would crash at runtime there. -->
+    <dimen name="card_grid_spacing">12dp</dimen>
 </resources>
