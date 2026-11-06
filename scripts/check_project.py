@@ -180,6 +180,12 @@ DECLARATION = re.compile(
     r"annotation |inline |value |const |override |suspend |operator |infix |"
     r"tailrec |external |lateinit |companion )*"
     r"(class|interface|object|fun|val|var|typealias)[ \t]+"
+    # Extension declarations put a receiver type before the name
+    # (`fun Context.gridSpanCount()`, `fun Movie.toCard()`). Without this the
+    # declared name is missed, so every import of an extension function looks
+    # unresolvable. Both parts stay non-capturing so group 2 remains the name.
+    r"(?:<[^>\n]*>[ \t]*)?"
+    r"(?:[A-Za-z_][A-Za-z0-9_.]*(?:<[^>\n]*>)?\??[ \t]*\.[ \t]*)?"
     r"([A-Za-z_][A-Za-z0-9_]*)",
     re.MULTILINE,
 )
