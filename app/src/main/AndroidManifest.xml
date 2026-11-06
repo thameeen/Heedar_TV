@@ -44,6 +44,24 @@
             android:name=".ui.player.PlayerActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
+
+        <activity
+            android:name=".ui.details.MovieDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.details.SeriesDetailActivity"
+            android:exported="false" />
+
+        <!-- Persists the per-app language choice (AppCompat 1.6+). -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
     </application>
 
 </manifest>
