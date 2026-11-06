@@ -39,4 +39,13 @@
         <item name="android:focusableInTouchMode" tools:targetApi="o" />
     </style>
 
+    <style name="Widget.HeedarTV.SettingsRow" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/text_body</item>
+    </style>
+
 </resources>
