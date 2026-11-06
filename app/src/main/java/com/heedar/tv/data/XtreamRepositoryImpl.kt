@@ -19,7 +19,7 @@ import java.io.IOException
 
 /**
  * Maps the Xtream API onto domain models and converts every thrown exception into
- * an [XtreamResult.Failure]. Runs all I/O on the injected dispatcher so tests can
+ * an [XtreamResult.Failure]. All I/O runs on the injected dispatcher so tests can
  * drive it deterministically.
  */
 class XtreamRepositoryImpl(
@@ -50,49 +50,64 @@ class XtreamRepositoryImpl(
     }
 
     override suspend fun loadLiveChannels(): XtreamResult<List<Channel>> = withContext(ioDispatcher) {
-        call {
-            api.getLiveStreams(
-                config.username,
-                config.password,
-                XtreamApiService.ACTION_LIVE_STREAMS
-            )
-        } transform { dtos -> dtos.mapNotNull { it.toChannel() } }
+        execute(
+            request = {
+                api.getLiveStreams(
+                    config.username,
+                    config.password,
+                    XtreamApiService.ACTION_LIVE_STREAMS
+                )
+            },
+            mapper = { dtos: List<LiveStreamDto> -> dtos.mapNotNull { it.toChannel() } }
+        )
     }
 
     override suspend fun loadVod(): XtreamResult<List<Movie>> = withContext(ioDispatcher) {
-        call {
-            api.getVodStreams(
-                config.username,
-                config.password,
-                XtreamApiService.ACTION_VOD_STREAMS
-            )
-        } transform { dtos -> dtos.mapNotNull { it.toMovie() } }
+        execute(
+            request = {
+                api.getVodStreams(
+                    config.username,
+                    config.password,
+                    XtreamApiService.ACTION_VOD_STREAMS
+                )
+            },
+            mapper = { dtos: List<VodStreamDto> -> dtos.mapNotNull { it.toMovie() } }
+        )
     }
 
     override suspend fun loadSeries(): XtreamResult<List<Series>> = withContext(ioDispatcher) {
-        call {
-            api.getSeries(
-                config.username,
-                config.password,
-                XtreamApiService.ACTION_SERIES
-            )
-        } transform { dtos -> dtos.mapNotNull { it.toSeries() } }
+        execute(
+            request = {
+                api.getSeries(
+                    config.username,
+                    config.password,
+                    XtreamApiService.ACTION_SERIES
+                )
+            },
+            mapper = { dtos: List<SeriesDto> -> dtos.mapNotNull { it.toSeries() } }
+        )
     }
 
-    private suspend fun <T, R> call(block: suspend () -> T): CallHolder<T> = CallHolder(block())
-
-    private infix fun <T, R> CallHolder<T>.transform(mapper: (T) -> R): XtreamResult<R> =
-        try {
-            XtreamResult.Success(mapper(value))
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (parse: JsonParseException) {
-            XtreamResult.Failure(XtreamFailure.PARSE, parse.message)
-        } catch (unexpected: Exception) {
-            XtreamResult.Failure(XtreamFailure.UNKNOWN, unexpected.message)
-        }
-
-    private class CallHolder<T>(val value: T)
+    /**
+     * Runs [request] and [mapper] inside one try/catch so both network errors and
+     * malformed payloads become typed failures instead of crashing the caller.
+     */
+    private inline fun <T, R> execute(
+        request: () -> T,
+        mapper: (T) -> R
+    ): XtreamResult<R> = try {
+        XtreamResult.Success(mapper(request()))
+    } catch (cancellation: CancellationException) {
+        throw cancellation
+    } catch (io: IOException) {
+        XtreamResult.Failure(XtreamFailure.NETWORK, io.message)
+    } catch (http: HttpException) {
+        XtreamResult.Failure(XtreamFailure.NETWORK, http.message())
+    } catch (parse: JsonParseException) {
+        XtreamResult.Failure(XtreamFailure.PARSE, parse.message)
+    } catch (unexpected: Exception) {
+        XtreamResult.Failure(XtreamFailure.UNKNOWN, unexpected.message)
+    }
 }
 
 private fun LiveStreamDto.toChannel(): Channel? {
