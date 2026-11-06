@@ -349,7 +349,15 @@ def parse_catalog(path: Path) -> list[tuple[str, str, str]]:
             versions[key] = value.strip('"')
         elif section in ("libraries", "plugins"):
             module = re.search(r'module\s*=\s*"([^"]+)"', value)
-            if not module:
+            # Catalog plugin entries are written `id = "org.jetbrains.kotlin.android"`,
+            # not `module = "g:a"`. They used to be dropped on the floor here, so
+            # the build plugins were never sent to OSV: the script printed a clean
+            # result while GHSA-r937-wjx7-w2jp was present in kotlin-gradle-plugin.
+            # The marker coordinate <id>:<id>.gradle.plugin carries a POM that
+            # depends on the real implementation artifact (kotlin-gradle-plugin,
+            # com.android.tools.build:gradle), which the graph walk then follows.
+            plugin_id = re.search(r'(?<![\w.])id\s*=\s*"([^"]+)"', value)
+            if not module and not plugin_id:
                 continue
             version_ref = re.search(r'version\.ref\s*=\s*"([^"]+)"', value)
             version = versions.get(version_ref.group(1)) if version_ref else None
@@ -357,7 +365,11 @@ def parse_catalog(path: Path) -> list[tuple[str, str, str]]:
                 version = (re.search(r'version\s*=\s*"([^"]+)"', value) or [None, None])[1]
             if version is None:
                 continue
-            group, artifact = module.group(1).split(":")
+            if module:
+                group, artifact = module.group(1).split(":")
+            else:
+                plugin = plugin_id.group(1)
+                group, artifact = plugin, f"{plugin}.gradle.plugin"
             deps.append((group, artifact, version))
     return deps
 
