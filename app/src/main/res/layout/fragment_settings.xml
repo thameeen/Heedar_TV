@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/screen_padding">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_language"
+            android:textColor="@color/accent"
+            android:textSize="@dimen/text_section_header"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/rgLanguage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_sm"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/rbArabic"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/field_height"
+                android:layout_weight="1"
+                android:buttonTint="@color/accent"
+                android:gravity="center_vertical"
+                android:text="@string/language_arabic"
+                android:textColor="@color/text_primary"
+                android:textSize="@dimen/text_body" />
+
+            <RadioButton
+                android:id="@+id/rbEnglish"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/field_height"
+                android:layout_weight="1"
+                android:buttonTint="@color/accent"
+                android:gravity="center_vertical"
+                android:text="@string/language_english"
+                android:textColor="@color/text_primary"
+                android:textSize="@dimen/text_body" />
+        </RadioGroup>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="@dimen/space_md"
+            android:background="@color/divider" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_md"
+            android:text="@string/settings_account"
+            android:textColor="@color/accent"
+            android:textSize="@dimen/text_section_header"
+            android:textStyle="bold" />
+
+        <ProgressBar
+            android:id="@+id/progressProfile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_sm"
+            android:indeterminateTint="@color/accent" />
+
+        <TextView
+            android:id="@+id/tvProfileError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_sm"
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_body"
+            android:visibility="gone"
+            tools:text="@string/error_network"
+            tools:visibility="visible" />
+
+        <LinearLayout
+            android:id="@+id/groupProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_sm"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvProfileUsername"
+                style="@style/Widget.HeedarTV.SettingsRow"
+                tools:text="username" />
+
+            <TextView
+                android:id="@+id/tvProfileStatus"
+                style="@style/Widget.HeedarTV.SettingsRow"
+                tools:text="Active" />
+
+            <TextView
+                android:id="@+id/tvProfileExpiry"
+                style="@style/Widget.HeedarTV.SettingsRow"
+                tools:text="2027-01-01" />
+
+            <TextView
+                android:id="@+id/tvProfilePlan"
+                style="@style/Widget.HeedarTV.SettingsRow"
+                tools:text="Standard" />
+
+            <TextView
+                android:id="@+id/tvProfileConnections"
+                style="@style/Widget.HeedarTV.SettingsRow"
+                tools:text="1 / 2" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="@dimen/space_md"
+            android:background="@color/divider" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_md"
+            android:text="@string/settings_server"
+            android:textColor="@color/accent"
+            android:textSize="@dimen/text_section_header"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvServerUrl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_sm"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_body"
+            tools:text="http://example.com:8080" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="@dimen/space_md"
+            android:background="@color/divider" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_md"
+            android:text="@string/settings_about"
+            android:textColor="@color/accent"
+            android:textSize="@dimen/text_section_header"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvVersion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_sm"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_body"
+            tools:text="الإصدار 1.0" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_xs"
+            android:text="@string/settings_playback_note"
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_caption" />
+
+        <Button
+            android:id="@+id/btnLogout"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/field_height"
+            android:layout_marginTop="@dimen/space_lg"
+            android:backgroundTint="@color/surface_elevated"
+            android:text="@string/settings_logout"
+            android:textColor="@color/accent" />
+
+    </LinearLayout>
+</ScrollView>
