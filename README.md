@@ -136,7 +136,7 @@ space), so GitHub never ran it. It is now at
 | JVM unit tests | `gradle testDebugUnitTest` | requires the Android SDK — runs in CI |
 | Debug APK | `gradle assembleDebug` | requires the Android SDK — runs in CI |
 | Dependency advisories | `run_tests(security)` | **incomplete** — Gradle has no resolved lockfile until a build runs, so the scanner had 0 packages. Not a pass. See [Dependency security](#dependency-security). |
-| Dependency advisories, transitive | `python3 scripts/check_dependencies.py` | **passes** — 75 modules resolved from published POMs, 0 advisories after the guava constraint. 5 version-less artifacts remain unscanned. |
+| Dependency advisories, transitive | `python3 scripts/check_dependencies.py` | **passes** — 79 modules resolved from published POMs, 0 unresolved, 0 advisories after the guava constraint (exit 0). |
 
 `scripts/check_project.py` verifies what a Gradle build would catch first:
 every `R.string`/`R.layout`/`R.drawable` reference resolves, every view-binding
@@ -161,7 +161,7 @@ scopes, normalises exact pins (`[2.5.1]` → `2.5.1`), applies highest-version-w
 per module, records which direct dependency introduced each module, then sends
 every resolved coordinate to the OSV `querybatch` API and enriches each hit via
 `/v1/vulns/{id}` for real severity and fix versions. It currently resolves
-**75 modules** from 16 direct coordinates.
+**79 modules** from 16 direct coordinates.
 
 **Finding, and what was done about it.** `com.google.guava:guava:33.0.0-android`
 is reached transitively through `androidx.media3:media3-exoplayer 1.4.1`, so it
