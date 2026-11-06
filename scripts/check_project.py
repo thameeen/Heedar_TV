@@ -294,6 +294,11 @@ def check_manifest_classes() -> None:
         class_name = element.get(f"{ANDROID_NS}name")
         if not class_name or class_name.startswith("."):
             class_name = "com.heedar.tv" + (class_name or "")
+        # Components contributed by libraries (e.g. appcompat's
+        # AppLocalesMetadataHolderService, which backs per-app locales) have no
+        # file in this repository, so only project-owned classes are checked.
+        if class_name.startswith(LIBRARY_CLASS_PREFIXES):
+            continue
         relative = Path(class_name.replace(".", "/") + ".kt")
         if not (JAVA / relative).exists():
             fail(f"AndroidManifest.xml: {class_name} has no source file at {relative}")
