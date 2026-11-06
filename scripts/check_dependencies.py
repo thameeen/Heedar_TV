@@ -275,22 +275,27 @@ def version_key(version: str) -> tuple:
     return tuple(key)
 
 
-def resolve(direct: list[tuple[str, str, str]]) -> tuple[dict[str, str], Resolver]:
+def resolve(
+    direct: list[tuple[str, str, str]]
+) -> tuple[dict[str, str], dict[str, str], Resolver]:
+    """Resolve the graph, tracking which direct dependency introduced each module."""
     resolver = Resolver()
     chosen: dict[tuple[str, str], str] = {}
+    origins: dict[str, str] = {}
 
     for group, artifact, version in direct:
         pom = resolver.load(group, artifact, version)
         if pom is not None:
-            resolver.collect_managed(pom, resolver.props_for(pom))
+            resolver.collect_managed_full(pom)
 
     frontier = list(direct)
     for _ in range(MAX_ITERATIONS):
         seen: set[tuple[str, str, str]] = set()
-        queue = [(g, a, v, 0) for g, a, v in frontier]
+        queue = [(g, a, v, 0, f"{g}:{a}") for g, a, v in frontier]
         found: dict[tuple[str, str], str] = {}
+        found_origins: dict[tuple[str, str], str] = {}
         while queue:
-            group, artifact, version, depth = queue.pop(0)
+            group, artifact, version, depth, root = queue.pop(0)
             if depth > MAX_DEPTH:
                 continue
             if (group, artifact, version) in seen:
@@ -299,20 +304,21 @@ def resolve(direct: list[tuple[str, str, str]]) -> tuple[dict[str, str], Resolve
             pom = resolver.load(group, artifact, version)
             if pom is None:
                 continue
+            resolver.collect_managed_full(pom)
             props = resolver.props_for(pom)
-            resolver.collect_managed(pom, props)
-            for child in resolver.dependencies(pom, props):
-                cg, ca, cv = child
+            for cg, ca, cv in resolver.dependencies(pom, props):
                 current = found.get((cg, ca))
                 if current is None or version_key(cv) > version_key(current):
                     found[(cg, ca)] = cv
-                queue.append((cg, ca, cv, depth + 1))
+                    found_origins[(cg, ca)] = root
+                queue.append((cg, ca, cv, depth + 1, root))
 
         merged = dict(chosen)
         for module, version in found.items():
             current = merged.get(module)
             if current is None or version_key(version) > version_key(current):
                 merged[module] = version
+                origins[f"{module[0]}:{module[1]}"] = found_origins.get(module, "")
 
         next_frontier = [(g, a, v) for (g, a), v in merged.items()]
         if set(next_frontier) == set(frontier):
@@ -322,7 +328,7 @@ def resolve(direct: list[tuple[str, str, str]]) -> tuple[dict[str, str], Resolve
         frontier = next_frontier
 
     resolved = {f"{g}:{a}": v for (g, a), v in chosen.items()}
-    return resolved, resolver
+    return resolved, origins, resolver
 
 
 def parse_catalog(path: Path) -> list[tuple[str, str, str]]:
@@ -395,7 +401,7 @@ def main() -> int:
     direct = parse_catalog(CATALOG)
     print(f"Direct coordinates from {CATALOG.relative_to(ROOT)}: {len(direct)}")
 
-    coordinates, resolver = resolve(direct)
+    coordinates, origins, resolver = resolve(direct)
     print(f"Resolved modules (direct + transitive): {len(coordinates)}")
 
     if resolver.unresolved:
