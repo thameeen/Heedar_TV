@@ -95,8 +95,8 @@ uses `ListAdapter` + `DiffUtil` (comparison logic extracted to
 ### P5 — security
 * The playlist password is encrypted with an AES-GCM key held in the Android
   Keystore (`EncryptedPlaylistStore`); no plaintext credentials on disk.
-* `allowBackup="false"` and `fullBackupContent`/data-extraction rules so the
-  encrypted blob is not shipped off-device.
+* `allowBackup="false"` so the encrypted credential blob is never shipped
+  off-device by Android's auto-backup.
 * `network_security_config.xml` makes the cleartext decision explicit and
   documented in-file rather than implicit.
 
