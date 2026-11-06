@@ -1,13 +1,24 @@
 package com.heedar.tv.data
 
 import com.google.gson.JsonParseException
+import com.heedar.tv.data.remote.CategoryDto
+import com.heedar.tv.data.remote.EpisodeDto
 import com.heedar.tv.data.remote.LiveStreamDto
 import com.heedar.tv.data.remote.SeriesDto
+import com.heedar.tv.data.remote.SeriesInfoDto
+import com.heedar.tv.data.remote.UserInfoDto
+import com.heedar.tv.data.remote.VodInfoDto
 import com.heedar.tv.data.remote.VodStreamDto
 import com.heedar.tv.data.remote.XtreamApiService
+import com.heedar.tv.domain.AccountProfile
+import com.heedar.tv.domain.Category
 import com.heedar.tv.domain.Channel
+import com.heedar.tv.domain.Episode
 import com.heedar.tv.domain.Movie
+import com.heedar.tv.domain.MovieDetail
+import com.heedar.tv.domain.Season
 import com.heedar.tv.domain.Series
+import com.heedar.tv.domain.SeriesDetail
 import com.heedar.tv.domain.ServerConfig
 import com.heedar.tv.domain.XtreamFailure
 import com.heedar.tv.domain.XtreamResult
@@ -87,6 +98,105 @@ class XtreamRepositoryImpl(
             mapper = { dtos: List<SeriesDto> -> dtos.mapNotNull { it.toSeries() } }
         )
     }
+
+    override suspend fun loadLiveCategories(): XtreamResult<List<Category>> =
+        withContext(ioDispatcher) {
+            execute(
+                request = {
+                    api.getCategories(
+                        config.username,
+                        config.password,
+                        XtreamApiService.ACTION_LIVE_CATEGORIES
+                    )
+                },
+                mapper = { dtos: List<CategoryDto> -> dtos.mapNotNull { it.toCategory() } }
+            )
+        }
+
+    override suspend fun loadVodCategories(): XtreamResult<List<Category>> =
+        withContext(ioDispatcher) {
+            execute(
+                request = {
+                    api.getCategories(
+                        config.username,
+                        config.password,
+                        XtreamApiService.ACTION_VOD_CATEGORIES
+                    )
+                },
+                mapper = { dtos: List<CategoryDto> -> dtos.mapNotNull { it.toCategory() } }
+            )
+        }
+
+    override suspend fun loadSeriesCategories(): XtreamResult<List<Category>> =
+        withContext(ioDispatcher) {
+            execute(
+                request = {
+                    api.getCategories(
+                        config.username,
+                        config.password,
+                        XtreamApiService.ACTION_SERIES_CATEGORIES
+                    )
+                },
+                mapper = { dtos: List<CategoryDto> -> dtos.mapNotNull { it.toCategory() } }
+            )
+        }
+
+    override suspend fun loadSeriesDetail(seriesId: Int): XtreamResult<SeriesDetail> =
+        withContext(ioDispatcher) {
+            execute(
+                request = {
+                    api.getSeriesInfo(
+                        config.username,
+                        config.password,
+                        XtreamApiService.ACTION_SERIES_INFO,
+                        seriesId
+                    )
+                },
+                mapper = { dto: SeriesInfoDto -> dto.toSeriesDetail(seriesId) }
+            )
+        }
+
+    override suspend fun loadMovieDetail(vodId: Int): XtreamResult<MovieDetail> =
+        withContext(ioDispatcher) {
+            execute(
+                request = {
+                    api.getVodInfo(
+                        config.username,
+                        config.password,
+                        XtreamApiService.ACTION_VOD_INFO,
+                        vodId
+                    )
+                },
+                mapper = { dto: VodInfoDto -> dto.toMovieDetail(vodId) }
+            )
+        }
+
+    /**
+     * Re-authenticates to read the subscription snapshot. Kept separate from
+     * [authenticate] because a rejected session here is an auth failure, not a
+     * malformed payload.
+     */
+    override suspend fun loadProfile(): XtreamResult<AccountProfile> =
+        withContext(ioDispatcher) {
+            try {
+                val info = api.authenticate(config.username, config.password).userInfo
+                if (info == null || info.auth != 1) {
+                    XtreamResult.Failure(XtreamFailure.AUTH)
+                } else {
+                    XtreamResult.Success(info.toProfile())
+                }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (io: IOException) {
+                XtreamResult.Failure(XtreamFailure.NETWORK, io.message)
+            } catch (http: HttpException) {
+                XtreamResult.Failure(XtreamFailure.NETWORK, http.message())
+            } catch (parse: JsonParseException) {
+                XtreamResult.Failure(XtreamFailure.PARSE, parse.message)
+            } catch (unexpected: Exception) {
+                XtreamResult.Failure(XtreamFailure.UNKNOWN, unexpected.message)
+            }
+        }
 
     /**
      * Runs [request] and [mapper] inside one try/catch so both network errors and
