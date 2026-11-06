@@ -456,6 +456,18 @@ def main() -> int:
     coordinates, origins, resolver = resolve(direct)
     print(f"Resolved modules (direct + transitive): {len(coordinates)}")
 
+    constraints = parse_constraints(ROOT / "app" / "build.gradle.kts")
+    applied: list[str] = []
+    for module, version in sorted(constraints.items()):
+        previous = coordinates.get(module)
+        if previous != version:
+            coordinates[module] = version
+            applied.append(f"{module}: {previous or '<absent>'} -> {version}")
+    if applied:
+        print("\nVersion constraints applied (app/build.gradle.kts):")
+        for line in applied:
+            print(f"  - {line}")
+
     if resolver.unresolved:
         print(f"\nUnresolved during resolution: {len(resolver.unresolved)}")
         for name, reason in sorted(resolver.unresolved.items()):
