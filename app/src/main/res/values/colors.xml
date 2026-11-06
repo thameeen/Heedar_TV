@@ -1,11 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background">#121212</color>
-    <color name="surface">#1E1E1E</color>
-    <color name="surface_focused">#2C2C2C</color>
-    <color name="accent">#00E676</color>
-    <color name="text_primary">#FFFFFF</color>
-    <color name="text_secondary">#9CA3AF</color>
-    <color name="error">#FF5252</color>
-    <color name="warning">#FFC107</color>
+    <!-- Black + muted gold. Names marked "legacy" are referenced by existing
+         layouts and must keep their meaning; new screens should use the
+         semantic tokens below. -->
+
+    <!-- Base surfaces -->
+    <color name="background">#0B0B0C</color>
+    <color name="surface">#141416</color>
+    <color name="surface_elevated">#1C1C20</color>
+    <color name="surface_focused">#2A2A30</color>
+    <color name="divider">#26262B</color>
+
+    <!-- Gold accent ramp -->
+    <color name="accent">#C6A15B</color>
+    <color name="accent_bright">#E3C27E</color>
+    <color name="accent_dim">#8A6E3A</color>
+    <color name="on_accent">#0B0B0C</color>
+
+    <!-- Text -->
+    <color name="text_primary">#F5F1E8</color>
+    <color name="text_secondary">#9A958C</color>
+    <color name="text_disabled">#5E5A54</color>
+
+    <!-- Status -->
+    <color name="error">#E5484D</color>
+    <color name="warning">#E0A93B</color>
+    <color name="live_badge">#D7263D</color>
+
+    <!-- Overlays -->
+    <color name="scrim">#99000000</color>
+    <color name="focus_ring">#E3C27E</color>
 </resources>
