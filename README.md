@@ -135,13 +135,48 @@ space), so GitHub never ran it. It is now at
 | Workflow YAML parses | `ruby -ryaml -e 'YAML.load_file(".github/workflows/android_build.yml")'` | **passes** |
 | JVM unit tests | `gradle testDebugUnitTest` | requires the Android SDK — runs in CI |
 | Debug APK | `gradle assembleDebug` | requires the Android SDK — runs in CI |
-| Dependency advisories | `run_tests(security)` | **incomplete** — a Gradle project has no resolved lockfile until a build runs, so 0 packages were scanned. This is *not* a clean bill of health; run `gradle dependencies` (or `./gradlew app:dependencies`) and re-scan once the SDK is available. |
+| Dependency advisories | `run_tests(security)` | **incomplete** — Gradle has no resolved lockfile until a build runs, so the scanner had 0 packages. Not a pass. See [Dependency security](#dependency-security). |
 
 `scripts/check_project.py` verifies what a Gradle build would catch first:
 every `R.string`/`R.layout`/`R.drawable` reference resolves, every view-binding
 property used in Kotlin is an actual id in the corresponding layout, every
 package declaration matches its directory, and every class named in the manifest
 exists. It is a smoke check, **not** a substitute for compiling.
+
+## Dependency security
+
+The shared scanner resolves *lockfiles*, and a Gradle project has no
+`gradle.lockfile` until a build runs — which needs the Android SDK, absent here.
+So the scanner reported **0 packages inspected**. That is not a clean scan.
+
+As a partial substitute, the same OSV advisory database was queried directly for
+the exact coordinates pinned in `gradle/libs.versions.toml`:
+
+* **16 direct dependencies, no advisories**: androidx `core-ktx 1.13.1`,
+  `appcompat 1.7.0`, `recyclerview 1.3.2`, `lifecycle-runtime-ktx` /
+  `lifecycle-viewmodel-ktx 2.8.4`, `activity-ktx 1.9.1`,
+  `media3-exoplayer` / `media3-ui 1.4.1`; `retrofit` / `converter-gson 2.11.0`;
+  `okhttp` / `mockwebserver 4.12.0`; `coil 2.6.0`;
+  `kotlinx-coroutines-android` / `kotlinx-coroutines-test 1.8.1`;
+  `junit 4.13.2`.
+* **Build coordinates**: AGP `8.5.2`, `kotlin-stdlib 1.9.24` and
+  `gson 2.10.1` are clean.
+* **One accepted finding** — `GHSA-r937-wjx7-w2jp` (`CVE-2026-53914`), "unsafe
+  deserialization in the Kotlin build cache enables code execution", MODERATE,
+  vector `AV:L/AC:H/PR:H`. It affects `kotlin-gradle-plugin`, and the only fixed
+  release is `2.4.20-Beta1`.
+
+**Why it is deliberately not patched here.** The fix is a *pre-release* and a
+1.9 → 2.4 major jump, which falls outside the Kotlin range AGP 8.5.2 supports and
+cannot be compiled or verified in this environment. The plugin is build-time
+only — it never ships in the APK — the shipped `kotlin-stdlib` is clean, and the
+CVSS vector needs local access plus a poisoned build cache. Revisit once a
+stable Kotlin 2.x that AGP supports is available: bump `kotlin` in the version
+catalog and let CI run the full build.
+
+**Still uncovered**: the transitive graph (okhttp→okio, retrofit→okio, coil→…).
+To close it, enable Gradle dependency locking, commit the generated
+`gradle.lockfile` from CI, and re-run the scanner.
 
 ### Test coverage
 
