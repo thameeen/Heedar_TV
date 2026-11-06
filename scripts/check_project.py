@@ -173,6 +173,91 @@ def check_kotlin(resources: dict[str, set[str]]) -> None:
                     )
 
 
+DECLARATION = re.compile(
+    r"^[ \t]*"
+    r"(?:@[A-Za-z0-9_.]+(?:\([^)]*\))?[ \t]*)*"
+    r"(?:public |internal |private |protected |abstract |open |sealed |data |enum |"
+    r"annotation |inline |value |const |override |suspend |operator |infix |"
+    r"tailrec |external |lateinit |companion )*"
+    r"(class|interface|object|fun|val|var|typealias)[ \t]+"
+    r"([A-Za-z_][A-Za-z0-9_]*)",
+    re.MULTILINE,
+)
+
+PROJECT_ROOT_PACKAGE = "com.heedar.tv"
+
+
+def collect_declarations() -> tuple[dict[str, dict[str, Path]], dict[Path, set[str]]]:
+    """Map package -> declared top-level name -> file, plus per-file names (for nesting)."""
+    by_package: dict[str, dict[str, Path]] = {}
+    by_file: dict[Path, set[str]] = {}
+
+    for path in JAVA.rglob("*.kt"):
+        source = path.read_text(encoding="utf-8")
+        package_match = re.search(r"^package\s+([\w.]+)", source, re.MULTILINE)
+        if not package_match:
+            continue
+        package = package_match.group(1)
+        names = {match.group(2) for match in DECLARATION.finditer(source)}
+        by_file[path] = names
+        bucket = by_package.setdefault(package, {})
+        for name in names:
+            bucket.setdefault(name, path)
+
+    return by_package, by_file
+
+
+def check_imports() -> int:
+    """Every com.heedar.tv import must resolve to a real declaration in that package."""
+    by_package, by_file = collect_declarations()
+    packages = sorted(by_package, key=len, reverse=True)
+    import_pattern = re.compile(
+        r"^[ \t]*import[ \t]+(" + re.escape(PROJECT_ROOT_PACKAGE) + r"\.[\w.]+)", re.MULTILINE
+    )
+    resolved = 0
+
+    for path in JAVA.rglob("*.kt"):
+        source = path.read_text(encoding="utf-8")
+        relative = path.relative_to(ROOT)
+
+        for match in import_pattern.finditer(source):
+            target = match.group(1)
+            package = next(
+                (candidate for candidate in packages if target == candidate or target.startswith(candidate + ".")),
+                None,
+            )
+            if package is None:
+                fail(f"{relative}: import '{target}' is not in a known package")
+                continue
+
+            remainder = target[len(package):].lstrip(".")
+            if not remainder:
+                continue
+
+            segments = remainder.split(".")
+            declaring_file = by_package[package].get(segments[0])
+            if declaring_file is None:
+                fail(
+                    f"{relative}: import '{target}' does not resolve — "
+                    f"'{segments[0]}' is not declared in package '{package}'"
+                )
+                continue
+
+            # Nested declarations (e.g. XtreamResult.Success) must exist in the same file.
+            nested = by_file.get(declaring_file, set())
+            missing = [segment for segment in segments[1:] if segment not in nested]
+            if missing:
+                fail(
+                    f"{relative}: import '{target}' does not resolve — "
+                    f"'{missing[0]}' is not nested in {declaring_file.name}"
+                )
+                continue
+
+            resolved += 1
+
+    return resolved
+
+
 def check_manifest_classes() -> None:
     tree = ET.parse(MANIFEST)
     application = tree.getroot().find("application")
@@ -218,6 +303,7 @@ def main() -> int:
     resources = collect_resources()
     check_xml_files(resources)
     check_kotlin(resources)
+    imports = check_imports()
     check_manifest_classes()
     check_translations()
 
