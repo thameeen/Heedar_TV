@@ -34,6 +34,35 @@ def kebab_to_camel(name: str) -> str:
     return "".join(part.capitalize() for part in name.split("_"))
 
 
+VALUE_TAGS = {
+    "string": "string",
+    "color": "color",
+    "dimen": "dimen",
+    "style": "style",
+    "string-array": "array",
+    "integer-array": "array",
+    "array": "array",
+    "plurals": "plurals",
+    "bool": "bool",
+    "integer": "integer",
+}
+
+FOLDER_KINDS = {
+    "drawable": "drawable",
+    "color": "color",
+    "xml": "xml",
+    "mipmap": "mipmap",
+    "font": "font",
+    "menu": "menu",
+    "raw": "raw",
+    "anim": "anim",
+}
+
+
+def is_layout_folder(folder: str) -> bool:
+    return folder == "layout" or folder.startswith("layout-")
+
+
 def collect_resources() -> dict[str, set[str]]:
     resources: dict[str, set[str]] = {
         "string": set(),
@@ -45,40 +74,43 @@ def collect_resources() -> dict[str, set[str]]:
         "xml": set(),
         "mipmap": set(),
         "id": set(),
+        "array": set(),
+        "plurals": set(),
+        "font": set(),
+        "menu": set(),
+        "raw": set(),
+        "anim": set(),
+        "bool": set(),
+        "integer": set(),
     }
 
     for path in RES.rglob("*.xml"):
         folder = path.parent.name
-        if folder == "layout":
+        # Qualified variants (layout-sw600dp, drawable-v24, ...) are real resource
+        # folders too. Matching only the bare names hid every TV layout from the
+        # id/binding checks, so a broken sw600dp layout could only fail in CI.
+        if is_layout_folder(folder):
             resources["layout"].add(path.stem)
-        elif folder == "drawable":
-            resources["drawable"].add(path.stem)
-        elif folder == "color":
-            # res/color/*.xml files are @color resources too (state lists such as
-            # category_text). Only values/*.xml was scanned, so these looked missing.
-            resources["color"].add(path.stem)
-        elif folder == "xml":
-            resources["xml"].add(path.stem)
-        elif folder.startswith("mipmap"):
-            resources["mipmap"].add(path.stem)
+            continue
+        for prefix, kind in FOLDER_KINDS.items():
+            if folder == prefix or folder.startswith(prefix + "-"):
+                resources[kind].add(path.stem)
+                break
 
-    for values_file in (RES / "values").glob("*.xml"):
-        tree = ET.parse(values_file)
-        for child in tree.getroot():
-            tag = child.tag
-            name = child.get("name")
-            if not name:
-                continue
-            if tag == "string":
-                resources["string"].add(name)
-            elif tag == "color":
-                resources["color"].add(name)
-            elif tag == "dimen":
-                resources["dimen"].add(name)
-            elif tag == "style":
-                resources["style"].add(name)
+    for values_dir in sorted(p for p in RES.glob("values*") if p.is_dir()):
+        for values_file in values_dir.glob("*.xml"):
+            tree = ET.parse(values_file)
+            for child in tree.getroot():
+                name = child.get("name")
+                if not name:
+                    continue
+                kind = VALUE_TAGS.get(child.tag)
+                if kind:
+                    resources[kind].add(name)
 
-    for layout in (RES / "layout").glob("*.xml"):
+    for layout in RES.rglob("*.xml"):
+        if not is_layout_folder(layout.parent.name):
+            continue
         tree = ET.parse(layout)
         for element in tree.iter():
             raw_id = element.get(f"{ANDROID_NS}id")
