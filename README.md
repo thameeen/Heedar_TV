@@ -180,17 +180,19 @@ here. Guava is binary-compatible across 33.x, so the constraint is the smallest
 verifiable change. Remove it once media3 depends on guava ≥ 33.7.2.
 
 After the constraint the resolver reports `33.0.0-android → 33.7.2-android` and
-**no advisories across the 75 resolved coordinates**.
+**no advisories across the 79 resolved coordinates**.
 
 **What is still not covered** — stated rather than glossed over:
 
-* Five artifacts appear in POMs without a version and with no reachable BOM
-  supplying one, so they cannot be scanned: `com.google.code.findbugs:jsr305`,
-  `com.google.errorprone:error_prone_annotations`,
-  `com.google.j2objc:j2objc-annotations`, `org.checkerframework:checker-qual`
-  and `com.squareup.okio:okio` (a version-less entry; `okio` itself still
-  resolves to `3.6.0` via okhttp). They are compile-time annotations/helpers.
-  The script reports them and exits `2` — it never silently drops them.
+* Nothing is unresolved in the current graph. An earlier revision reported five
+  version-less artifacts (`jsr305`, `error_prone_annotations`,
+  `j2objc-annotations`, `checker-qual` and a duplicate `okio` entry). They were
+  not silently dropped: the resolver now treats a blank `<version>` as missing
+  and falls back to `dependencyManagement` inherited up the parent chain
+  (`guava-parent` supplies `jspecify` 1.0.1, `error_prone_annotations` 2.50.0,
+  `j2objc-annotations` 3.1, `failureaccess` 1.0.3), which took the graph from
+  75 to 79 modules. An artifact with no reachable version would still be printed
+  and the run would exit `2` — never skipped.
 * The POM walk is an *approximation* of Gradle's resolver: no variant-aware
   selection, no `resolutionStrategy`/platform alignment, no attribute matching.
   A coordinate Gradle resolves differently would be missed.
