@@ -135,6 +135,7 @@ space), so GitHub never ran it. It is now at
 | Workflow YAML parses | `ruby -ryaml -e 'YAML.load_file(".github/workflows/android_build.yml")'` | **passes** |
 | JVM unit tests | `gradle testDebugUnitTest` | requires the Android SDK — runs in CI |
 | Debug APK | `gradle assembleDebug` | requires the Android SDK — runs in CI |
+| Dependency advisories | `run_tests(security)` | **incomplete** — a Gradle project has no resolved lockfile until a build runs, so 0 packages were scanned. This is *not* a clean bill of health; run `gradle dependencies` (or `./gradlew app:dependencies`) and re-scan once the SDK is available. |
 
 `scripts/check_project.py` verifies what a Gradle build would catch first:
 every `R.string`/`R.layout`/`R.drawable` reference resolves, every view-binding
