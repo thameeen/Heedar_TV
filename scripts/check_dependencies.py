@@ -228,9 +228,9 @@ class Resolver:
                 continue
             if dep_type not in ("jar", "aar"):
                 continue
-            if version is None:
+            if version is None or not version.strip():
                 version = self.managed.get((group, artifact))
-            if version is None:
+            if version is None or not version.strip():
                 self.unresolved[f"{group}:{artifact}:?"] = "no version in POM or BOM"
                 continue
             concrete = normalize_version(version)
