@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TV / large-tablet overrides: bigger cards, larger type, wider gutters. -->
+<resources>
+
+    <dimen name="screen_padding">32dp</dimen>
+    <dimen name="card_width">180dp</dimen>
+    <dimen name="card_height">270dp</dimen>
+    <dimen name="card_grid_spacing">16dp</dimen>
+    <dimen name="text_display">34sp</dimen>
+    <dimen name="text_section_header">24sp</dimen>
+    <dimen name="text_card_title">15sp</dimen>
+    <dimen name="text_body">17sp</dimen>
+    <dimen name="text_caption">13sp</dimen>
+    <dimen name="chip_height">48dp</dimen>
+    <dimen name="focus_stroke">3dp</dimen>
+    <dimen name="empty_icon_size">96dp</dimen>
+
+</resources>
