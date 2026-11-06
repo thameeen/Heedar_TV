@@ -16,7 +16,7 @@ import kotlinx.coroutines.Dispatchers
  */
 class AppContainer(
     context: Context,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
 
     private val appContext: Context = context.applicationContext
