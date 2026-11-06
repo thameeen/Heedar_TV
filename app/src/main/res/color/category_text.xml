@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Chip label colour. Mirrors bg_category_chip: the selected chip is filled with
+     solid accent gold, so its label must flip to on_accent to stay readable.
+     item_category.xml referenced @color/category_text before this file existed,
+     which is a hard AAPT failure ("resource color/category_text not found"). -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:color="@color/background" android:state_selected="true" />
+    <item
+        android:color="@color/on_accent"
+        android:state_selected="true" />
 
     <item android:color="@color/text_primary" />
 
