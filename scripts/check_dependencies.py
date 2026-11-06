@@ -229,6 +229,26 @@ class Resolver:
         return result
 
 
+def normalize_version(version: str | None) -> str | None:
+    """Map a POM version spec to a concrete version.
+
+    Gradle/Maven exact pins look like ``[1.2.3]`` and mean exactly 1.2.3.
+    Genuine ranges (``[1.0,2.0)``) cannot be resolved without metadata, so they
+    are reported rather than guessed.
+    """
+    if version is None:
+        return None
+    value = version.strip()
+    if value.startswith("[") and value.endswith("]"):
+        inner = value[1:-1]
+        if "," not in inner:
+            return inner.strip()
+        return None
+    if "," in value or value.startswith("(") or value.endswith(")"):
+        return None
+    return value or None
+
+
 def version_key(version: str) -> tuple:
     """Sort key approximating Maven version ordering."""
     parts = re.split(r"[.\-_]", version)
