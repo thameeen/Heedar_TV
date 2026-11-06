@@ -53,6 +53,10 @@ def collect_resources() -> dict[str, set[str]]:
             resources["layout"].add(path.stem)
         elif folder == "drawable":
             resources["drawable"].add(path.stem)
+        elif folder == "color":
+            # res/color/*.xml files are @color resources too (state lists such as
+            # category_text). Only values/*.xml was scanned, so these looked missing.
+            resources["color"].add(path.stem)
         elif folder == "xml":
             resources["xml"].add(path.stem)
         elif folder.startswith("mipmap"):
