@@ -144,8 +144,9 @@ class XtreamRepositoryImplTest {
 
     @Test
     fun `unreachable panel is reported as NETWORK`() = runBlocking {
-        val baseUrl = requireNotNull(UrlNormalizerFixture.normalize(server.url("/").toString()))
-        server.shutdown()
+        // Port 1 is never listening, so the connection is refused immediately.
+        // The shared MockWebServer is left untouched for tearDown().
+        val baseUrl = requireNotNull(UrlNormalizerFixture.normalize("http://127.0.0.1:1"))
 
         val repository = XtreamRepositoryImpl(
             api = XtreamClientFactory.create(baseUrl),

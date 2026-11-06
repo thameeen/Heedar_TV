@@ -76,7 +76,8 @@ class ChannelsViewModelTest {
         viewModel.load()
         advanceUntilIdle()
 
-        assertEquals(1, repository.calls)
+        // init{} loads once, the retry loads again.
+        assertEquals(2, repository.calls)
         assertEquals(
             ChannelsUiState.Content(listOf(Channel(1, "Bein 1", null, null))),
             viewModel.state.value
