@@ -30,6 +30,8 @@
 
     <!-- Focus ring for D-pad navigation -->
     <dimen name="focus_stroke">2dp</dimen>
+    <dimen name="chip_height">40dp</dimen>
+    <dimen name="chip_spacing">8dp</dimen>
 
     <!-- Type scale -->
     <dimen name="text_display">28sp</dimen>
