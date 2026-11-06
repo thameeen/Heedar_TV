@@ -396,6 +396,35 @@ def severity_of(vuln: dict) -> str:
     return "UNKNOWN"
 
 
+_VULN_CACHE: dict[str, dict] = {}
+
+
+def fetch_vuln(vuln_id: str) -> dict:
+    """querybatch omits severity/summary, so fetch the full record per advisory."""
+    if vuln_id in _VULN_CACHE:
+        return _VULN_CACHE[vuln_id]
+    data: dict = {}
+    try:
+        with urllib.request.urlopen(f"https://api.osv.dev/v1/vulns/{vuln_id}", timeout=60) as resp:
+            data = json.load(resp)
+    except Exception as exc:  # network hiccup must not look like a clean result
+        print(f"        ! could not fetch {vuln_id}: {exc}")
+    _VULN_CACHE[vuln_id] = data
+    return data
+
+
+def fixed_version(detail: dict, module: str) -> str | None:
+    for affected in detail.get("affected") or []:
+        pkg = (affected.get("package") or {}).get("name")
+        if pkg and pkg != module:
+            continue
+        for rng in affected.get("ranges") or []:
+            for event in rng.get("events") or []:
+                if event.get("fixed"):
+                    return str(event["fixed"])
+    return None
+
+
 def main() -> int:
     verbose = "--verbose" in sys.argv
     direct = parse_catalog(CATALOG)
@@ -424,15 +453,24 @@ def main() -> int:
     print(f"\nAdvisories found in {len(findings)} module(s):\n")
     worst = 0
     for coordinate, vulns in sorted(findings.items()):
+        module, version = coordinate.rsplit(":", 1)
         print(f"  {coordinate}")
+        origin = origins.get(module)
+        if origin and origin != module:
+            print(f"      introduced via: {origin}")
         for vuln in vulns:
-            severity = severity_of(vuln)
+            vid = vuln.get("id", "?")
+            detail = fetch_vuln(vid)
+            severity = severity_of(detail) if detail else severity_of(vuln)
             rank = SEVERITY_RANK.get(severity.split(":")[0], 0)
             worst = max(worst, rank)
-            aliases = ", ".join(vuln.get("aliases") or [])
-            print(f"      - {vuln.get('id')} [{severity}] {vuln.get('summary', '')}")
+            summary = detail.get("summary") or vuln.get("summary", "")
+            aliases = ", ".join((detail.get("aliases") or vuln.get("aliases") or []))
+            print(f"      - {vid} [{severity}] {summary}")
             if aliases:
                 print(f"        aliases: {aliases}")
+            fix = fixed_version(detail, module) if detail else None
+            print(f"        fixed in: {fix if fix else 'no fix listed'}")
     print()
     return 1
 
