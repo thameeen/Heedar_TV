@@ -425,6 +425,29 @@ def fixed_version(detail: dict, module: str) -> str | None:
     return None
 
 
+def parse_constraints(path: Path) -> dict[str, str]:
+    """Read explicit version constraints from a Gradle module's constraints block."""
+    if not path.exists():
+        return {}
+    forced: dict[str, str] = {}
+    in_block = False
+    depth = 0
+    for raw in path.read_text().splitlines():
+        line = raw.split("//", 1)[0]
+        if not in_block and "constraints" in line and "{" in line:
+            in_block = True
+            depth = line.count("{") - line.count("}")
+            continue
+        if in_block:
+            depth += line.count("{") - line.count("}")
+            match = re.search(r'"([\w.\-]+):([\w.\-]+):([\w.\-]+)"', line)
+            if match:
+                forced[f"{match.group(1)}:{match.group(2)}"] = match.group(3)
+            if depth <= 0:
+                in_block = False
+    return forced
+
+
 def main() -> int:
     verbose = "--verbose" in sys.argv
     direct = parse_catalog(CATALOG)
