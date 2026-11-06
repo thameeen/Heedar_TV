@@ -136,6 +136,7 @@ space), so GitHub never ran it. It is now at
 | JVM unit tests | `gradle testDebugUnitTest` | requires the Android SDK — runs in CI |
 | Debug APK | `gradle assembleDebug` | requires the Android SDK — runs in CI |
 | Dependency advisories | `run_tests(security)` | **incomplete** — Gradle has no resolved lockfile until a build runs, so the scanner had 0 packages. Not a pass. See [Dependency security](#dependency-security). |
+| Dependency advisories, transitive | `python3 scripts/check_dependencies.py` | **passes** — 75 modules resolved from published POMs, 0 advisories after the guava constraint. 5 version-less artifacts remain unscanned. |
 
 `scripts/check_project.py` verifies what a Gradle build would catch first:
 every `R.string`/`R.layout`/`R.drawable` reference resolves, every view-binding
@@ -147,36 +148,67 @@ exists. It is a smoke check, **not** a substitute for compiling.
 
 The shared scanner resolves *lockfiles*, and a Gradle project has no
 `gradle.lockfile` until a build runs — which needs the Android SDK, absent here.
-So the scanner reported **0 packages inspected**. That is not a clean scan.
+So the scanner reports **0 packages inspected**, `status: incomplete`. That is
+not a clean scan and is never described as one.
 
-As a partial substitute, the same OSV advisory database was queried directly for
-the exact coordinates pinned in `gradle/libs.versions.toml`:
+**Substitute used instead.** `scripts/check_dependencies.py` walks the real
+dependency graph from *published* POM metadata — Maven Central and Google Maven
+— rather than guessing versions. It reads the 16 direct coordinates in
+`gradle/libs.versions.toml`, follows `<dependencies>` transitively with property
+interpolation, honours BOM imports (`scope=import`), inherits
+`dependencyManagement` up the parent chain, skips `test`/`provided`/`optional`
+scopes, normalises exact pins (`[2.5.1]` → `2.5.1`), applies highest-version-wins
+per module, records which direct dependency introduced each module, then sends
+every resolved coordinate to the OSV `querybatch` API and enriches each hit via
+`/v1/vulns/{id}` for real severity and fix versions. It currently resolves
+**75 modules** from 16 direct coordinates.
 
-* **16 direct dependencies, no advisories**: androidx `core-ktx 1.13.1`,
-  `appcompat 1.7.0`, `recyclerview 1.3.2`, `lifecycle-runtime-ktx` /
-  `lifecycle-viewmodel-ktx 2.8.4`, `activity-ktx 1.9.1`,
-  `media3-exoplayer` / `media3-ui 1.4.1`; `retrofit` / `converter-gson 2.11.0`;
-  `okhttp` / `mockwebserver 4.12.0`; `coil 2.6.0`;
-  `kotlinx-coroutines-android` / `kotlinx-coroutines-test 1.8.1`;
-  `junit 4.13.2`.
-* **Build coordinates**: AGP `8.5.2`, `kotlin-stdlib 1.9.24` and
-  `gson 2.10.1` are clean.
-* **One accepted finding** — `GHSA-r937-wjx7-w2jp` (`CVE-2026-53914`), "unsafe
-  deserialization in the Kotlin build cache enables code execution", MODERATE,
-  vector `AV:L/AC:H/PR:H`. It affects `kotlin-gradle-plugin`, and the only fixed
-  release is `2.4.20-Beta1`.
+**Finding, and what was done about it.** `com.google.guava:guava:33.0.0-android`
+is reached transitively through `androidx.media3:media3-exoplayer 1.4.1`, so it
+ships inside the APK — this is not a build-time-only issue.
+`GHSA-xxph-c9ww-hj94` / `CVE-2026-102554` (HIGH, GitHub-reviewed, CWE-400/502/770):
+`CompactHashMap`/`CompactHashSet`/`MapMakerInternalMap` `readObject` allocate an
+attacker-controlled `elementCount` before validating the stream, so a ~72-byte
+payload can exhaust memory. Fixed in **33.7.2**.
 
-**Why it is deliberately not patched here.** The fix is a *pre-release* and a
-1.9 → 2.4 major jump, which falls outside the Kotlin range AGP 8.5.2 supports and
-cannot be compiled or verified in this environment. The plugin is build-time
-only — it never ships in the APK — the shipped `kotlin-stdlib` is clean, and the
-CVSS vector needs local access plus a poisoned build cache. Revisit once a
-stable Kotlin 2.x that AGP supports is available: bump `kotlin` in the version
-catalog and let CI run the full build.
+Remediation is a `constraints` block in `app/build.gradle.kts` pinning
+`com.google.guava:guava:33.7.2-android`. Why a constraint and not a media3 bump:
+every media3 release from 1.4.1 through 1.11.1 still pins guava `33.3.1-android`,
+which is *below* the fix, so upgrading the player would not have remediated it —
+and a 1.4.1 → 1.11.1 jump changes player APIs that cannot be compiled or tested
+here. Guava is binary-compatible across 33.x, so the constraint is the smallest
+verifiable change. Remove it once media3 depends on guava ≥ 33.7.2.
 
-**Still uncovered**: the transitive graph (okhttp→okio, retrofit→okio, coil→…).
-To close it, enable Gradle dependency locking, commit the generated
-`gradle.lockfile` from CI, and re-run the scanner.
+After the constraint the resolver reports `33.0.0-android → 33.7.2-android` and
+**no advisories across the 75 resolved coordinates**.
+
+**What is still not covered** — stated rather than glossed over:
+
+* Five artifacts appear in POMs without a version and with no reachable BOM
+  supplying one, so they cannot be scanned: `com.google.code.findbugs:jsr305`,
+  `com.google.errorprone:error_prone_annotations`,
+  `com.google.j2objc:j2objc-annotations`, `org.checkerframework:checker-qual`
+  and `com.squareup.okio:okio` (a version-less entry; `okio` itself still
+  resolves to `3.6.0` via okhttp). They are compile-time annotations/helpers.
+  The script reports them and exits `2` — it never silently drops them.
+* The POM walk is an *approximation* of Gradle's resolver: no variant-aware
+  selection, no `resolutionStrategy`/platform alignment, no attribute matching.
+  A coordinate Gradle resolves differently would be missed.
+* A passing run is not a certification of the source, and the advisory snapshot
+  is a point in time.
+
+**Accepted risk, unchanged**: `GHSA-r937-wjx7-w2jp` (`CVE-2026-53914`), "unsafe
+deserialization in the Kotlin build cache enables code execution", MODERATE,
+vector `AV:L/AC:H/PR:H`, affecting `kotlin-gradle-plugin`; the only fixed release
+is `2.4.20-Beta1`. It is deliberately not patched: the fix is a pre-release and a
+1.9 → 2.4 major jump, outside the Kotlin range AGP 8.5.2 supports, and cannot be
+compiled or verified here. The plugin is build-time only, the shipped
+`kotlin-stdlib 1.9.24` is clean, and the CVSS vector requires local access plus a
+poisoned build cache. Revisit once a stable Kotlin 2.x that AGP supports exists.
+
+**To get authoritative coverage**: enable Gradle dependency locking, let CI
+commit the generated `gradle.lockfile`, and re-run `run_tests(security)` against
+it. That replaces the approximation above with Gradle's own resolution.
 
 ### Test coverage
 
