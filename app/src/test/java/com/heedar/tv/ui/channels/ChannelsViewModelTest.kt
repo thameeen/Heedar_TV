@@ -1,9 +1,13 @@
 package com.heedar.tv.ui.channels
 
 import com.heedar.tv.data.XtreamRepository
+import com.heedar.tv.domain.AccountProfile
+import com.heedar.tv.domain.Category
 import com.heedar.tv.domain.Channel
 import com.heedar.tv.domain.Movie
+import com.heedar.tv.domain.MovieDetail
 import com.heedar.tv.domain.Series
+import com.heedar.tv.domain.SeriesDetail
 import com.heedar.tv.domain.XtreamFailure
 import com.heedar.tv.domain.XtreamResult
 import kotlinx.coroutines.Dispatchers
@@ -103,5 +107,23 @@ class ChannelsViewModelTest {
 
         override suspend fun loadSeries(): XtreamResult<List<Series>> =
             XtreamResult.Success(emptyList())
+
+        override suspend fun loadLiveCategories(): XtreamResult<List<Category>> =
+            XtreamResult.Success(emptyList())
+
+        override suspend fun loadVodCategories(): XtreamResult<List<Category>> =
+            XtreamResult.Success(emptyList())
+
+        override suspend fun loadSeriesCategories(): XtreamResult<List<Category>> =
+            XtreamResult.Success(emptyList())
+
+        override suspend fun loadSeriesDetail(seriesId: Int): XtreamResult<SeriesDetail> =
+            XtreamResult.Failure(XtreamFailure.UNKNOWN)
+
+        override suspend fun loadMovieDetail(vodId: Int): XtreamResult<MovieDetail> =
+            XtreamResult.Failure(XtreamFailure.UNKNOWN)
+
+        override suspend fun loadProfile(): XtreamResult<AccountProfile> =
+            XtreamResult.Failure(XtreamFailure.UNKNOWN)
     }
 }
