@@ -1,69 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="32dp">
+    android:background="@color/background"
+    android:fillViewport="true">
 
-    <!-- اسم التطبيق -->
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Heedar TV"
-        android:textColor="#00FF66"
-        android:textSize="36sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="32dp"/>
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="@dimen/screen_padding">
 
-    <!-- حقل رابط السيرفر -->
-    <EditText
-        android:id="@+id/etServerUrl"
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:background="#1E1E1E"
-        android:hint="رابط السيرفر (مثل: http://server:8080)"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#9CA3AF"
-        android:paddingHorizontal="16dp"
-        android:layout_marginBottom="16dp"
-        android:inputType="textUri"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:text="@string/app_name"
+            android:textColor="@color/accent"
+            android:textSize="34sp"
+            android:textStyle="bold" />
 
-    <!-- حقل اسم المستخدم -->
-    <EditText
-        android:id="@+id/etUsername"
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:background="#1E1E1E"
-        android:hint="اسم المستخدم (Username)"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#9CA3AF"
-        android:paddingHorizontal="16dp"
-        android:layout_marginBottom="16dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing"
+            android:layout_marginBottom="32dp"
+            android:gravity="center"
+            android:text="@string/login_tagline"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp" />
 
-    <!-- حقل كلمة المرور -->
-    <EditText
-        android:id="@+id/etPassword"
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:background="#1E1E1E"
-        android:hint="كلمة المرور (Password)"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#9CA3AF"
-        android:inputType="textPassword"
-        android:paddingHorizontal="16dp"
-        android:layout_marginBottom="24dp"/>
+        <EditText
+            android:id="@+id/etServerUrl"
+            style="@style/Widget.HeedarTV.Field"
+            android:autofillHints="url"
+            android:hint="@string/hint_server_url"
+            android:inputType="textUri" />
 
-    <!-- زر تسجيل الدخول بالأخضر -->
-    <Button
-        android:id="@+id/btnLogin"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:backgroundTint="#00FF66"
-        android:text="تسجيل الدخول"
-        android:textColor="#121212"
-        android:textSize="18sp"
-        android:textStyle="bold"/>
+        <EditText
+            android:id="@+id/etUsername"
+            style="@style/Widget.HeedarTV.Field"
+            android:autofillHints="username"
+            android:hint="@string/hint_username"
+            android:inputType="text" />
 
-</LinearLayout>
+        <EditText
+            android:id="@+id/etPassword"
+            style="@style/Widget.HeedarTV.Field"
+            android:autofillHints="password"
+            android:hint="@string/hint_password"
+            android:inputType="textPassword" />
+
+        <TextView
+            android:id="@+id/tvCleartextWarning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/warning_cleartext"
+            android:textColor="@color/warning"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textColor="@color/error"
+            android:textSize="14sp"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnLogin"
+            style="@style/Widget.HeedarTV.PrimaryButton"
+            android:text="@string/action_login" />
+
+        <ProgressBar
+            android:id="@+id/progressLogin"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="16dp"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/accent"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</ScrollView>

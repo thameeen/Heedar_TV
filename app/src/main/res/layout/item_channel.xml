@@ -1,42 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="80dp"
-    android:background="#1E1E1E"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:padding="12dp"
-    android:layout_marginBottom="8dp"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/item_spacing"
+    android:background="@drawable/bg_channel_item"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="12dp">
 
-    <!-- أيقونة أو شعار القناة -->
     <ImageView
         android:id="@+id/ivChannelLogo"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:background="#121212"
-        android:scaleType="centerInside"
-        android:padding="4dp"/>
+        android:layout_width="@dimen/logo_size"
+        android:layout_height="@dimen/logo_size"
+        android:contentDescription="@string/channel_logo_description"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_channel_placeholder" />
 
-    <!-- اسم القناة -->
     <TextView
         android:id="@+id/tvChannelName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
         android:layout_marginStart="16dp"
-        android:text="اسم القناة"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:textStyle="bold"
+        android:layout_weight="1"
+        android:ellipsize="end"
         android:maxLines="1"
-        android:ellipsize="end"/>
-
-    <!-- مؤشر أخضر جانبى -->
-    <View
-        android:layout_width="4dp"
-        android:layout_height="40dp"
-        android:background="#00FF66"/>
+        android:textColor="@color/text_primary"
+        android:textSize="16sp" />
 
 </LinearLayout>
